@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>TradeVerse V3</title>
+<style>
+:root{
+  --bg:#000; --line:#1f2226; --txt:#e8eaed; --mut:#8d939b;
+  --sell:#e5533f; --red:#f0523f; --blue:#3d8bff; --blue2:#4da3ff; --teal:#1fb0b8;
+  box-sizing:border-box; color-scheme:dark;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:#000;color:var(--txt);
+  font-family:Roboto,"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  font-variant-numeric:tabular-nums;overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--blue2);outline-offset:2px}
+
+#app{height:100%;max-width:760px;margin:0 auto;display:flex;flex-direction:column;background:#000;position:relative;overflow:hidden}
+
+/* top bar */
+#top{flex:none;height:48px;display:flex;align-items:center;gap:2px;padding:0 6px 0 4px}
+.ic{width:44px;height:44px;border:0;background:transparent;color:#d9dce0;border-radius:50%;display:grid;place-items:center;transition:background .12s,transform .08s}
+.ic:active{background:#1e232a;transform:scale(.92)}
+.ic[aria-pressed="true"]{color:var(--blue2);background:#10233b}
+.tf{font-size:18px;color:#c9cdd3;padding:0 10px}
+#title{margin:0 0 0 6px;font-size:18px;font-weight:500}
+.bal{margin-left:auto;text-align:right;line-height:1.15;background:#0b1510;border:1px solid #21382b;border-radius:10px;padding:4px 10px}
+.bal small{display:block;font-size:11px;color:#7fcf9f}
+.bal b{font-size:15px;font-weight:500}
+
+/* screens */
+main{flex:1;min-height:0;display:flex;flex-direction:column}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column}
+.list{overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:12px}
+
+/* SELL / lot / BUY */
+.tradebar{flex:none;display:grid;grid-template-columns:minmax(0,29fr) minmax(0,42fr) minmax(0,29fr);height:68px;background:#000}
+.side{border:0;background:var(--sell);color:#fff;text-align:left;padding:7px 8px 6px 9px;display:flex;flex-direction:column;justify-content:space-between;transition:background .18s,filter .1s,transform .08s;min-width:0}
+.tradebar.alt .side{background:#287cff}
+.side:active{filter:brightness(1.15);transform:scale(.975)}
+.side .lbl{display:flex;align-items:center;gap:6px;font-size:13px;line-height:1;opacity:.95}
+.px{white-space:nowrap;line-height:1}
+.pp{font-size:clamp(15px,4.6vw,21px)}
+.pd{font-size:clamp(20px,6.4vw,28px);font-weight:500}
+.lot{display:flex;align-items:center;justify-content:center;gap:2px;background:#000}
+.lot button{width:48px;height:48px;border:0;background:transparent;color:#d7dade;border-radius:50%;display:grid;place-items:center;touch-action:manipulation;transition:background .1s,transform .08s}
+.lot button:active{background:#22262c;transform:scale(.9)}
+.lot output{min-width:56px;text-align:center;font-size:19px;color:#e9ebee}.lot-value{min-width:64px;height:44px;border:0;background:transparent;color:#e9ebee;border-radius:10px;font-size:19px;padding:0 6px}.lot-value:active{background:#22262c}.lot-menu{position:absolute;z-index:20;left:50%;top:60px;transform:translateX(-50%);display:grid;grid-template-columns:repeat(4,1fr);gap:5px;background:#11151a;border:1px solid #303640;border-radius:12px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.5);width:230px}.lot-menu button{width:auto!important;height:40px!important;border-radius:8px!important;background:#1b2027!important;font-size:14px!important}.lot-menu button:active{background:#2a3340!important}
+
+/* chart */
+#chartwrap{flex:1;min-height:0;position:relative;border-top:1px solid #16181b;background:#000}
+#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+.sym{position:absolute;left:6px;top:5px;pointer-events:none;font-size:16px;line-height:1.3;text-shadow:0 0 4px #000,0 0 4px #000}
+.sym b{color:var(--blue2);font-weight:500}
+.sym small{display:block;font-size:12px;color:var(--mut)}
+#btnLive{position:absolute;left:10px;bottom:38px;border:1px solid #2b4f7d;background:#0e1f35;color:var(--blue2);border-radius:18px;padding:8px 14px;font-size:14px;transition:transform .08s,filter .1s}
+#btnLive:active{transform:scale(.94);filter:brightness(1.25)}
+
+/* bottom nav */
+#nav{flex:none;height:68px;display:flex;justify-content:space-around;align-items:center;padding:0 4px;background:#000;border-top:1px solid #15171a}
+.nb{position:relative;min-width:66px;height:54px;border:0;background:transparent;color:#d7dade;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:14px;border-radius:27px;padding:0 12px;transition:background .12s,transform .08s}
+.nb:active{transform:scale(.93);background:#15181d}
+.nb[aria-current="page"]{background:#16263b;color:var(--blue2)}
+.bd{position:absolute;top:1px;right:6px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;display:grid;place-items:center}
+
+/* rows */
+.hint{padding:12px 16px 8px;color:var(--mut);font-size:13px}
+.row{padding:13px 16px;border-bottom:1px solid var(--line)}
+.kv{display:flex;justify-content:space-between;align-items:baseline;padding:11px 16px;border-bottom:1px solid var(--line);font-size:15px}
+.kv span:first-child{color:var(--mut)}
+.qrow{display:grid;grid-template-columns:1fr auto auto;gap:4px 18px;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--line);padding:14px 16px;transition:background .1s}
+.qrow:active{background:#111418}
+.qrow .n{font-size:18px;font-weight:500}
+.qrow .d,.mut{color:var(--mut);font-size:13px}
+.qrow .v{font-size:20px;text-align:right}
+.qrow .v small{display:block;font-size:11px;color:var(--mut)}
+.up{color:var(--blue2)} .dn{color:var(--red)}
+.badge{display:inline-block;font-size:12px;padding:2px 7px;border-radius:6px;margin:0 6px}
+.badge.BUY{background:#12263f;color:var(--blue2)} .badge.SELL{background:#3a1913;color:#ff7b6a}
+.line{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.line+.line{margin-top:5px}
+.big{font-size:17px;font-weight:500}
+.sltp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.sltp label{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--mut)}
+.sltp input{width:84px;height:40px;border:1px solid #2b2f35;background:#111316;color:var(--txt);border-radius:8px;padding:0 8px;font:inherit;font-size:15px;-webkit-user-select:text;user-select:text}
+.btn{height:40px;padding:0 16px;border-radius:8px;border:1px solid #2b2f35;background:#15181c;transition:transform .08s,filter .1s}
+.btn:active{transform:scale(.95);filter:brightness(1.3)}
+.btn.danger{border-color:#5a2a22;background:#2a1511;color:#ff8a7a}
+.btn.wide{width:calc(100% - 32px);margin:14px 16px 0}
+.empty{padding:36px 24px;text-align:center;color:var(--mut);line-height:1.5}
+.empty .btn{margin-top:14px}
+.msg h3{margin:0 0 4px;font-size:16px;font-weight:500;display:flex;align-items:center;gap:8px}
+.msg p{margin:0;color:#c3c7cd;font-size:14px;line-height:1.45}
+.msg time{display:block;margin-top:6px;font-size:12px;color:var(--mut)}
+.msg .nd{width:8px;height:8px;border-radius:50%;background:var(--blue2)}
+.verified-badge{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;background:#1687f5;color:#fff;line-height:1;vertical-align:1px;box-sizing:border-box;flex:none;margin-left:3px;clip-path:polygon(50% 0%,61% 6%,72% 3%,79% 12%,91% 13%,94% 25%,100% 34%,95% 45%,98% 56%,91% 65%,91% 78%,79% 81%,72% 91%,61% 94%,50% 100%,39% 94%,28% 97%,21% 88%,9% 87%,6% 75%,0% 66%,5% 55%,2% 44%,9% 35%,9% 22%,21% 19%,28% 9%,39% 6%)}.verified-badge::before{content:'✓';font-size:9px;font-weight:900;line-height:1;transform:translateY(-.2px)}
+
+/* toast + sheet */
+#toast{position:absolute;left:12px;right:12px;bottom:80px;background:#1b1f25;border:1px solid #303640;border-radius:12px;padding:12px 14px;font-size:14px;text-align:center;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .18s,transform .18s;z-index:5}
+#toast.on{opacity:1;transform:none}
+#globalChat{position:absolute;left:10px;right:10px;bottom:76px;z-index:7;display:flex;justify-content:center;pointer-events:none}
+#globalChat .pollbtn{pointer-events:auto}
+.gchat{max-width:94%;background:#11161d;border:1px solid #2d3b4d;border-radius:14px;padding:9px 12px;box-shadow:0 6px 20px rgba(0,0,0,.45);animation:gchatIn .18s ease-out}
+.gchat .gwho{font-size:13px;font-weight:600;color:#58a6ff;margin-bottom:2px}
+.gchat .gmsg{font-size:14px;color:#f0f2f4;line-height:1.35;word-break:break-word}
+@keyframes gchatIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#sheet{position:absolute;inset:0;background:rgba(0,0,0,.66);z-index:10;display:flex;align-items:flex-end}
+#sheet .box{width:100%;max-height:88%;overflow-y:auto;background:#101215;border-top:1px solid #2a2e34;border-radius:18px 18px 0 0;padding:20px 18px 18px}
+#sheet h2{margin:0 0 8px;font-size:20px;font-weight:500}
+#sheet p{margin:0 0 12px;color:#c3c7cd;font-size:14px;line-height:1.5}
+#sheet .kv{padding-left:0;padding-right:0}
+#sheet .acts{display:flex;gap:10px;margin-top:16px}
+#sheet .acts .btn{flex:1;height:46px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---------- developer global event ---------- */
+#devLogin{position:absolute;inset:0;z-index:90;background:rgba(0,0,0,.84);display:flex;align-items:center;justify-content:center;padding:18px}
+#devLogin[hidden]{display:none!important}
+.devloginbox{width:min(420px,100%);background:#101215;border:1px solid #303640;border-radius:18px;padding:22px 18px}
+.devloginbox h2{margin:0 0 8px;font-size:20px;font-weight:600}
+.devloginbox p{margin:0 0 16px;color:#aeb5bf;font-size:13px;line-height:1.45}
+.devloginbox label{display:block;color:#cbd0d7;font-size:13px;margin:12px 0 6px}
+.devloginbox input{width:100%;height:44px;background:#111316;color:#e8eaed;border:1px solid #303640;border-radius:9px;padding:0 11px;font:inherit;box-sizing:border-box}
+.devloginacts{display:flex;gap:10px;margin-top:18px}.devloginacts .btn{flex:1;height:44px}
+#exchangeModal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:grid;place-items:center;z-index:60;padding:18px;box-sizing:border-box}#exchangeModal[hidden]{display:none}.devloginbox select{width:100%;height:42px;background:#111;color:#fff;border:1px solid #343941;border-radius:9px;padding:0 10px;font:inherit}#exchangeModal .kv{margin-top:10px}
+#devEvent{position:absolute;inset:0;z-index:80;background:rgba(0,0,0,.78);display:flex;align-items:flex-end}
+#devEvent[hidden]{display:none!important}
+.devbox{width:100%;background:#101215;border-top:1px solid #303640;border-radius:18px 18px 0 0;padding:20px 18px 18px;max-height:90%;overflow:auto}
+.devbox h2{margin:0 0 8px;font-size:20px;font-weight:500}
+.devbox p{margin:0 0 12px;color:#aeb5bf;font-size:13px;line-height:1.45}
+.devbox label{display:block;color:#cbd0d7;font-size:13px;margin:12px 0 6px}
+.devbox input,.devbox select{width:100%;height:42px;background:#111316;color:#e8eaed;border:1px solid #303640;border-radius:9px;padding:0 10px;font:inherit}
+.devrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.devacts{display:flex;gap:10px;margin-top:16px}.devacts .btn{flex:1}
+
+.marketSelect{position:absolute;left:8px;top:8px;height:30px;max-width:150px;background:#111;color:#fff;border:1px solid #30343a;border-radius:8px;padding:0 7px;font:600 13px system-ui;z-index:4}.sym{position:relative}.sym small{display:block}.marketList .qrow{margin-bottom:1px}.qrow .n{font-weight:700}.qrow .d{color:#aeb5bf}.marketPrice{font-variant-numeric:tabular-nums}
+
+/* vertical scale drag area: use the price-axis area directly */
+#vzoom{position:absolute;right:0;top:0;bottom:30px;width:70px;z-index:5;touch-action:none;background:transparent;cursor:ns-resize}
+
+/* ---------- global vote ---------- */
+.pollbox{margin:10px 0;padding:12px;border:1px solid #30384a;border-radius:14px;background:#101522;color:#fff;box-shadow:0 8px 24px #0006}
+.pollq{font-weight:800;font-size:15px;margin-bottom:10px}.pollopt{margin:8px 0}.pollbtn{width:100%;position:relative;overflow:hidden;border:1px solid #3a4358;background:#171d2b;color:#fff;border-radius:10px;padding:10px;text-align:left;font-weight:700;cursor:pointer}.pollbar{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(239,68,68,.28);pointer-events:none;transition:width .25s}.pollbtn.b .pollbar{background:rgba(34,197,94,.28)}.polltxt{position:relative;z-index:1;display:flex;justify-content:space-between;gap:8px}.pollmeta{font-size:11px;color:#9aa4b5;margin-top:7px}.pollwinner{margin-top:8px;font-size:12px;font-weight:800}.poll-admin-result{margin-top:8px;padding:8px;border-radius:10px;background:#151b28;font-size:12px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <button class="ic" id="btnMenu" aria-label="Menu dan info simulasi"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <div id="tools" style="display:flex;align-items:center">
+      <button class="ic" id="btnCross" aria-pressed="false" aria-label="Crosshair"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/></svg></button>
+      <span class="tf" id="devHotspot" aria-label="T1">T1</span>
+    </div>
+    <h1 id="title" hidden></h1>
+    <div class="bal"><b id="balTop">$100.00</b></div>
+  </header>
+
+  <main>
+    <!-- CHART -->
+    <section id="s-chart" class="screen">
+      <div class="tradebar">
+        <button class="side" id="btnSell" aria-label="Sell">
+          <span class="lbl">SELL</span>
+          <span class="px" id="pxSell"></span>
+        </button>
+        <div class="lot">
+          <button id="lotDn" aria-label="Kurangi lot"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+          <button id="lotVal" class="lot-value" aria-label="Pilih perubahan lot" aria-haspopup="menu">0.10</button>
+          <button id="lotUp" aria-label="Tambah lot"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button>
+        </div>
+        <button class="side" id="btnBuy" aria-label="Buy">
+          <span class="lbl">BUY</span>
+          <span class="px" id="pxBuy"></span>
+        </button>
+      </div>
+      <div id="chartwrap">
+        <canvas id="cv"></canvas>
+        <div id="vzoom" aria-label="Geser sumbu harga vertikal" title="Geser atas/bawah untuk mengatur skala candle"></div>
+        <div class="sym"><select id="marketSelect" aria-label="Pilih market"></select><br><span id="marketName">Gold vs US Dollar</span></div>
+        <button id="btnLive" hidden>Ke harga live</button>
+      </div>
+    </section>
+
+    <!-- QUOTE -->
+    <section id="s-quote" class="screen list" hidden>
+      <div class="hint">Semua harga dibuat oleh simulator internal, bukan harga pasar.</div>
+      <div id="quoteMarkets"></div>
+    </section>
+
+    <!-- TRADE -->
+    <section id="s-trade" class="screen list" hidden></section>
+
+    <!-- RIWAYAT -->
+    <section id="s-hist" class="screen list" hidden></section>
+
+    <!-- PESAN -->
+    <section id="s-msg" class="screen list" hidden></section>
+  </main>
+
+  <nav id="nav" aria-label="Navigasi utama">
+    <button class="nb" data-go="quote"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20V5m0 0L4 9m4-4 4 4M16 4v15m0 0-4-4m4 4 4-4"/></svg>Quote</button>
+    <button class="nb" data-go="chart"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v3m0 9v3M16 6v3m0 9v3"/><rect x="5.5" y="6" width="5" height="9" rx="1"/><rect x="13.5" y="9" width="5" height="9" rx="1"/></svg>Chart</button>
+    <button class="nb" data-go="trade"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 3 8-9"/><circle cx="8" cy="11" r="1.4" fill="currentColor"/><circle cx="12" cy="14" r="1.4" fill="currentColor"/></svg>Trade</button>
+    <button class="nb" data-go="hist"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5"/><path d="M3.5 4v4.5H8M12 8v4.5l3 2"/></svg>Riwayat</button>
+    <button class="nb" data-go="msg"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>Messages<span class="bd" id="badge" hidden>1</span></button>
+  </nav>
+
+  <div id="exchangeModal" hidden>
+    <div class="devloginbox" role="dialog" aria-modal="true" aria-labelledby="exchangeTitle">
+      <h2 id="exchangeTitle">Tukar Mata Uang Virtual</h2>
+      <p>Kurs tetap simulator: <b>1 USD = Rp17.000</b>. Tidak ada uang asli.</p>
+      <label for="exchangeDir">Arah penukaran</label>
+      <select id="exchangeDir"><option value="usd-idr">USD ($) → Rp</option><option value="idr-usd">Rp → USD ($)</option></select>
+      <label for="exchangeAmount">Jumlah</label>
+      <input id="exchangeAmount" type="number" min="0.01" step="0.01" placeholder="Masukkan jumlah">
+      <div class="kv"><span>Saldo USD</span><span id="exUsd">$0.00</span></div>
+      <div class="kv"><span>Saldo Rp</span><span id="exIdr">Rp0</span></div>
+      <div class="devloginacts"><button class="btn" id="exchangeCancel">Batal</button><button class="btn" id="exchangeConfirm">Konfirmasi</button></div>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="globalChat" aria-live="polite" aria-atomic="true"></div>
+
+
+  <div id="devLogin" hidden>
+    <div class="devloginbox" role="dialog" aria-modal="true" aria-labelledby="devLoginTitle">
+      <h2 id="devLoginTitle">Admin Event Login</h2>
+      <p>Login khusus untuk akses Developer Global Event.</p>
+      <label for="devPass">Password Admin</label>
+      <input id="devPass" type="password" autocomplete="off" placeholder="Masukkan password">
+      <div class="devloginacts"><button class="btn" id="devLoginCancel">Cancel</button><button class="btn" id="devLoginSubmit">Lanjut</button></div>
+    </div>
+  </div>
+
+  <div id="devEvent" hidden>
+    <div class="devbox" role="dialog" aria-modal="true" aria-labelledby="devTitle">
+      <h2 id="devTitle">Developer Global Event</h2>
+      <p>Developer-only panel. Event settings are local to this HTML prototype.</p>
+      <label for="devName">Event name</label>
+      <input id="devName" value="GLOBAL MARKET EVENT" maxlength="60">
+      <div class="devrow">
+        <div><label for="devSeconds">Countdown (seconds)</label><input id="devSeconds" type="number" min="1" max="3600" value="60"></div>
+        <div><label for="devMove">Movement</label><input id="devMove" type="number" min="1" max="1000" value="100"></div>
+      </div>
+      <label for="devDirection">Direction</label>
+      <select id="devDirection"><option value="up">UP</option><option value="down">DOWN</option><option value="random">RANDOM</option></select>
+      <label for="devPollQuestion">Vote question</label>
+      <input id="devPollQuestion" placeholder="Kalian pilih apa?" maxlength="120" autocomplete="off">
+      <div class="devrow">
+        <div><label for="devPollA">Pilihan A</label><input id="devPollA" value="Profit 100" maxlength="60"></div>
+        <div><label for="devPollB">Pilihan B</label><input id="devPollB" value="Profit 500 random naik/turun" maxlength="60"></div>
+      </div>
+      <label for="devPollDuration">Durasi vote (detik)</label>
+      <input id="devPollDuration" type="number" min="1" max="31536000" step="1" value="30" placeholder="Contoh: 30 atau 31536000">
+      <div class="devacts"><button class="btn" id="devPollStart">Start Global Vote</button></div>
+      <div id="devPollResult" class="poll-admin-result" hidden></div>
+      <label for="devMessage">Global message</label>
+      <input id="devMessage" placeholder="Hello everyone" maxlength="240" autocomplete="off">
+      <label for="devExpire">Hapus chat/event setelah (detik)</label>
+      <input id="devExpire" type="number" min="1" max="31536000" step="1" value="30" placeholder="Contoh: 30 atau 31536000">
+      <div class="devacts"><button class="btn" id="devCancel">Cancel</button><button class="btn" id="devSend">Send Global Message</button></div>
+      <div class="devacts"><button class="btn" id="devStart">Start Event</button></div>
+    </div>
+  </div>
+
+  <div id="sheet" hidden>
+    <div class="box" role="dialog" aria-modal="true" aria-labelledby="shTitle">
+      <h2 id="shTitle">TradeVerse V3</h2>
+      <p>Simulasi trading gratis dengan mata uang virtual. Tidak ada uang asli, deposit, penarikan, atau pembayaran. Saldo, harga market virtual, dan laba/rugi hanya angka di dalam aplikasi ini.</p>
+      <div class="kv"><span>Saldo awal</span><span>$100.00 virtual</span></div>
+      <div class="kv"><span>Margin</span><span>$1.00 per 0.01 lot</span></div>
+      <div class="kv"><span>Kurs virtual</span><span>1 USD = Rp17.000</span></div>
+      <button class="btn wide" id="btnExchange">Tukar USD ↔ Rp Virtual</button>
+      <div class="kv"><span>Laba/rugi</span><span>$0.50 per 1.00 point per 0.01 lot</span></div>
+      <div class="kv"><span>Spread simulasi</span><span>0.13</span></div>
+      <div class="acts">
+        <button class="btn danger" id="btnReset">Reset saldo virtual</button>
+        <button class="btn" id="btnCloseSheet">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+const START_BAL=100, PTV=0.5, MPL=1, IDR_RATE=17000, KEY='tradeverse_v3_usd';
+const MARKETS=[
+  {symbol:'XAUUSD',name:'Gold vs US Dollar',start:4017.18,spread:0.13},
+  {symbol:'EURUSD',name:'Euro vs US Dollar',start:1.0842,spread:0.0002},
+  {symbol:'GBPUSD',name:'British Pound vs US Dollar',start:1.2915,spread:0.0003},
+  {symbol:'USDJPY',name:'US Dollar vs Japanese Yen',start:147.25,spread:0.03},
+  {symbol:'AUDUSD',name:'Australian Dollar vs US Dollar',start:0.6531,spread:0.0002},
+  {symbol:'USDCAD',name:'US Dollar vs Canadian Dollar',start:1.3592,spread:0.0003},
+  {symbol:'BTCUSD',name:'Bitcoin vs US Dollar',start:63500.00,spread:8},
+  {symbol:'ETHUSD',name:'Ethereum vs US Dollar',start:2630.00,spread:0.8},
+  {symbol:'NAS100',name:'Nasdaq 100 Index',start:19850.00,spread:1.5},
+  {symbol:'US30',name:'Dow Jones 30 Index',start:42100.00,spread:2.0}
+];
+const TICKS_PER_CANDLE=220, HIST=220, MAXC=600;
+let SYMBOL='XAUUSD';
+const marketDef=s=>MARKETS.find(m=>m.symbol===s)||MARKETS[0];
+const marketSpread=()=>marketDef(SYMBOL).spread;
+const marketDigits=s=>/^(EURUSD|GBPUSD|AUDUSD|USDCAD)$/.test(s)?5:(s==='USDJPY'?3:2);
+const mround=(s,x)=>{const d=marketDigits(s),k=10**d;return Math.round(x*k)/k};
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const fmtInt=n=>String(Math.round(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const usd=n=>{const r=Math.round(n*100)/100;return (r<0?'-':'')+'$'+Math.abs(r).toFixed(2)};
+const plS=n=>{const r=Math.round(n*100)/100;return (r>0?'+USD ':r<0?'-USD ':'USD ')+Math.abs(r).toFixed(2)};
+const lotS=c=>(c/100).toFixed(2);
+const r2=x=>Math.round(x*100)/100;
+function tstr(t){const d=new Date(t);return d.getDate()+' '+MON[d.getMonth()]+' '+pad(d.getHours())+':'+pad(d.getMinutes())}
+
+/* ---------- state ---------- */
+let S={balance:START_BAL,idrBalance:0,positions:[],history:[],messages:[],globalChat:[],lastPrice:4017.18,marketPrices:{},currentSymbol:'XAUUSD',lotC:10,nextId:1};
+try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);if(o&&typeof o.balance==='number'&&Array.isArray(o.positions))S=Object.assign(S,o)}}catch(e){}
+if(typeof S.idrBalance!=='number'||!isFinite(S.idrBalance))S.idrBalance=0;
+if(!S.marketPrices)S.marketPrices={};
+MARKETS.forEach(m=>{if(typeof S.marketPrices[m.symbol]!=='number')S.marketPrices[m.symbol]=(m.symbol==='XAUUSD'&&typeof S.lastPrice==='number'?S.lastPrice:m.start)});
+SYMBOL=S.currentSymbol&&MARKETS.some(m=>m.symbol===S.currentSymbol)?S.currentSymbol:'XAUUSD';
+function save(){S.marketPrices[SYMBOL]=price;S.lastPrice=price;S.currentSymbol=SYMBOL;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function mprice(sym){return typeof S.marketPrices[sym]==='number'?S.marketPrices[sym]:marketDef(sym).start}
+function maxSpread(sym){return marketDef(sym).spread}
+function marketMove(sym){const d=marketDef(sym);const p=mprice(sym);const scale=Math.max(d.start*0.00008, d.symbol.includes('BTC')?5:d.symbol.includes('ETH')?0.7:d.start>100?0.5:0.00008);S.marketPrices[sym]=mround(sym,p+(Math.random()-0.5)*scale)}
+function welcome(){addMsg('Welcome to TradeVerse V3','This is a free virtual trading simulator. The starting balance of $100.00 is virtual currency only: no real money, deposits, withdrawals, or payments. Market prices are generated by the internal simulator, not live market prices.')}
+function addMsg(title,body,ttlSec=0){const msg={id:S.nextId++,ts:Date.now(),title,body,read:false,expiresAt:ttlSec>0?Date.now()+ttlSec*1000:0};S.messages.unshift(msg);if(S.messages.length>60)S.messages.length=60;updateBadge();if(cur==='msg')renderMsg();if(ttlSec>0)setTimeout(()=>{const i=S.messages.findIndex(x=>x.id===msg.id);if(i>=0){S.messages.splice(i,1);updateBadge();if(cur==='msg')renderMsg();save()}},ttlSec*1000)}
+function getAdminExpire(){const n=Number($('devExpire')?.value);return Math.max(1,Math.min(31536000,Number.isFinite(n)&&n>0?n:30))}
+function showGlobalChat(text){const item={id:S.nextId++,ts:Date.now(),author:'Developer',text:String(text||'').trim()};if(!item.text)return;if(!Array.isArray(S.globalChat))S.globalChat=[];S.globalChat.unshift(item);if(S.globalChat.length>50)S.globalChat.length=50;const ttl=getAdminExpire();addMsg('Developer <span class="verified-badge" aria-label="Verified Developer"></span>',item.text,ttl);const el=$('globalChat');el.innerHTML='<div class="gchat"><div class="gwho">Developer <span class="verified-badge" aria-label="Verified Developer"></span></div><div class="gmsg"></div></div>';el.querySelector('.gmsg').textContent=item.text;clearTimeout(window.__gchatTimer);window.__gchatTimer=setTimeout(()=>{el.innerHTML=''},ttl*1000);save()}
+
+/* ---------- price simulator ---------- */
+let price=mprice(SYMBOL), anchor=price, drift=0, vol=0.1, ttl=0;
+const ask=()=>mround(SYMBOL,price+marketSpread());
+function updateMarketHeader(){const d=marketDef(SYMBOL);const sel=$('marketSelect');if(sel)sel.value=SYMBOL;$('marketName').textContent=d.name;}
+function switchMarket(sym){if(!MARKETS.some(m=>m.symbol===sym)||sym===SYMBOL)return;save();SYMBOL=sym;price=mprice(SYMBOL);anchor=price;drift=0;vol=0.1;ttl=0;candles=[];yMin=null;yMax=null;const m0=Math.floor(Date.now()/60000)*60000;for(let i=0;i<HIST;i++)candles.push(simCandle(m0-(HIST-i)*60000));price=mprice(SYMBOL);anchor=price;candles.push({t:m0,o:price,h:price,l:price,c:price});live=candles[candles.length-1];sessHi=Math.max.apply(null,candles.map(c=>c.h));sessLo=Math.min.apply(null,candles.map(c=>c.l));sessOpen=candles[0].o;panPx=0;updateMarketHeader();renderQuote();refreshAll();toast(SYMBOL+' selected');dirty=true;}
+function gauss(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function step(){
+  if(--ttl<=0){drift=gauss()*0.018;vol=0.06+Math.random()*0.08;ttl=25+((Math.random()*90)|0)}
+  anchor+=gauss()*0.015;
+  let d=drift+gauss()*vol+(anchor-price)*0.0004;
+  if(Math.random()<0.004)d+=gauss()*0.45;            // gerakan lebih besar, jarang
+  d=Math.max(-1.3,Math.min(1.3,d));                   // batas per tick
+  price=mround(SYMBOL,price+d);
+}
+function simCandle(t){
+  const o=price;let h=price,l=price;
+  for(let k=0;k<TICKS_PER_CANDLE;k++){step();if(price>h)h=price;if(price<l)l=price}
+  return {t,o,h,l,c:price};
+}
+let candles=[];
+(function genHistory(){
+  const start=price, m0=Math.floor(Date.now()/60000)*60000;
+  for(let i=0;i<HIST;i++)candles.push(simCandle(m0-(HIST-i)*60000));
+  const shift=start-price;
+  candles.forEach(c=>{c.o=r2(c.o+shift);c.h=r2(c.h+shift);c.l=r2(c.l+shift);c.c=r2(c.c+shift)});
+  price=start;anchor=start;S.marketPrices[SYMBOL]=start;
+  candles.push({t:m0,o:price,h:price,l:price,c:price});
+})();
+let live=candles[candles.length-1];
+let sessHi=Math.max.apply(null,candles.map(c=>c.h)), sessLo=Math.min.apply(null,candles.map(c=>c.l));
+let sessOpen=candles[0].o;
+
+function roll(m){
+  const gap=Math.floor((m-live.t)/60000);
+  if(gap>0){
+    const cnt=Math.min(Math.max(gap-1,0),90);
+    for(let j=0;j<cnt;j++){
+      const c=simCandle(live.t+(j+1)*60000);
+      candles.push(c);
+    }
+  }
+  live={t:m,o:price,h:price,l:price,c:price};
+  candles.push(live);
+  if(candles.length>MAXC)candles.splice(0,candles.length-MAXC);
+}
+
+/* ---------- trading ---------- */
+function floating(p){const k=p.lotC*PTV;const mp=mprice(p.symbol||'XAUUSD'),sp=maxSpread(p.symbol||'XAUUSD');return p.type==='BUY'?(mp-p.entry)*k:(p.entry-(mp+sp))*k}
+function equity(){let e=S.balance;S.positions.forEach(p=>{e+=p.margin+floating(p)});return e}
+function openPos(type){
+  if(S.positions.length>=20){toast('Maksimal 20 posisi terbuka.');return}
+  const lotC=S.lotC,margin=lotC*MPL;
+  if(S.balance<margin){toast('Saldo virtual tidak cukup. Margin '+usd(margin)+' untuk '+lotS(lotC)+' lot.');return}
+  const entry=type==='BUY'?ask():price;
+  S.balance-=margin;
+  S.positions.push({id:S.nextId++,symbol:SYMBOL,type,lotC,entry,margin,sl:null,tp:null,openedAt:Date.now()});
+  save();vib(12);
+  toast(type+' '+lotS(lotC)+' dibuka di '+entry.toFixed(2)+'. Margin virtual '+usd(margin)+'.');
+  refreshAll();
+}
+function closePos(id,reason){
+  const i=S.positions.findIndex(p=>p.id===id);if(i<0)return 0;
+  const p=S.positions[i];
+  const psym=p.symbol||'XAUUSD', mp=mprice(psym), sp=maxSpread(psym);
+  let exit=p.type==='BUY'?mp:mp+sp;
+  if(reason==='SL'&&p.sl!=null)exit=p.sl;
+  if(reason==='TP'&&p.tp!=null)exit=p.tp;
+  const k=p.lotC*PTV;
+  const pl=Math.round(p.type==='BUY'?(exit-p.entry)*k:(p.entry-exit)*k);
+  S.positions.splice(i,1);
+  S.balance+=p.margin+pl;
+  S.history.unshift({id:p.id,symbol:psym,type:p.type,lotC:p.lotC,entry:p.entry,exit:exit,pl:pl,openedAt:p.openedAt,closedAt:Date.now(),reason:reason||'Manual'});
+  if(S.history.length>200)S.history.length=200;
+  return pl;
+}
+function autoClose(p,reason){
+  const pl=closePos(p.id,reason);
+  const nm={SL:'Stop loss',TP:'Take profit'}[reason]||reason;
+  addMsg(nm+' terkena','Posisi '+p.type+' '+lotS(p.lotC)+' '+(p.symbol||'XAUUSD')+' ditutup otomatis. Hasil virtual: '+plS(pl)+'.');
+  toast(nm+': '+p.type+' '+lotS(p.lotC)+' ditutup ('+plS(pl)+')');
+  save();refreshAll();
+}
+function checkTriggers(){
+  S.positions.slice().forEach(p=>{
+    const psym=p.symbol||'XAUUSD',mp=mprice(psym),a=mp+maxSpread(psym);
+    if(p.type==='BUY'){if(p.sl!=null&&mp<=p.sl)autoClose(p,'SL');else if(p.tp!=null&&mp>=p.tp)autoClose(p,'TP')}
+    else{if(p.sl!=null&&a>=p.sl)autoClose(p,'SL');else if(p.tp!=null&&a<=p.tp)autoClose(p,'TP')}
+  });
+  if(S.positions.length&&equity()<=0){
+    let tot=0;S.positions.slice().forEach(p=>{tot+=closePos(p.id,'Stop-out')});
+    S.balance=Math.max(0,S.balance);
+    addMsg('Stop-out','Ekuitas virtual habis, semua posisi ditutup otomatis.');
+    toast('Stop-out: semua posisi ditutup.');
+    save();refreshAll();
+  }
+}
+
+/* ---------- ui: prices ---------- */
+function pxHtml(p){const s=p.toFixed(2),i=s.indexOf('.');return '<span class="pp">'+s.slice(0,i+1)+'</span><span class="pd">'+s.slice(i+1)+'</span>'}
+function updatePrices(){
+  $('pxSell').innerHTML=pxHtml(price);$('pxBuy').innerHTML=pxHtml(ask());
+  updateMarketHeader();
+}
+
+function renderQuote(){
+  const el=$('quoteMarkets');if(!el)return;
+  let h='';MARKETS.forEach(m=>{const p=mprice(m.symbol),a=r2(p+m.spread), base=m.start, ch=p-base,pc=base?(ch/base*100):0;h+='<button class="qrow" data-market="'+m.symbol+'"><span class="n">'+m.symbol+'</span><span class="v marketPrice"><small>Bid</small>'+p.toFixed(2)+'</span><span class="v marketPrice"><small>Ask</small>'+a.toFixed(2)+'</span><span class="d">'+m.name+'</span><span class="d" style="text-align:right;grid-column:2/4"><span class="'+(ch>=0?'up':'dn')+'">'+(ch>=0?'+':'')+ch.toFixed(2)+' ('+(pc>=0?'+':'')+pc.toFixed(2)+'%)</span></span><span class="d" style="grid-column:1/4">Virtual market · Spread '+m.spread+'</span></button>'});el.innerHTML=h;el.querySelectorAll('[data-market]').forEach(b=>b.addEventListener('click',()=>{switchMarket(b.dataset.market);go('chart')}));
+}
+function updateBal(){$('balTop').textContent=usd(S.balance)}
+function updateBadge(){const n=S.messages.filter(m=>!m.read).length;$('badge').hidden=!n;$('badge').textContent=n>9?'9+':n}
+
+/* ---------- ui: trade / history / messages ---------- */
+function renderTrade(){
+  const el=$('s-trade');
+  let h='<div class="hint">Semua angka di bawah adalah virtual.</div>';
+  h+='<div class="kv"><span>Saldo tersedia</span><b id="sumBal"></b></div>';
+  h+='<div class="kv"><span>Margin terpakai</span><b id="sumMar"></b></div>';
+  h+='<div class="kv"><span>Laba/rugi mengambang</span><b id="sumFl"></b></div>';
+  h+='<div class="kv"><span>Ekuitas</span><b id="sumEq"></b></div>';
+  if(!S.positions.length){
+    h+='<div class="empty">Belum ada posisi terbuka.<br>Buka BUY atau SELL dari tab Chart.<br><button class="btn" data-act="gochart">Ke Chart</button></div>';
+  }else{
+    S.positions.slice().reverse().forEach(p=>{
+      h+='<div class="row" data-pid="'+p.id+'"><div class="line"><span class="big">'+(p.symbol||'XAUUSD')+'<span class="badge '+p.type+'">'+p.type+'</span>'+lotS(p.lotC)+'</span><b class="big" id="pl-'+p.id+'"></b></div>'
+       +'<div class="line mut"><span>'+p.entry.toFixed(2)+' → <span id="cp-'+p.id+'"></span></span><span>Margin '+usd(p.margin)+'</span></div>'
+       +'<div class="sltp"><label>SL <input inputmode="decimal" data-f="sl" value="'+(p.sl!=null?p.sl.toFixed(2):'')+'" placeholder="harga"></label>'
+       +'<label>TP <input inputmode="decimal" data-f="tp" value="'+(p.tp!=null?p.tp.toFixed(2):'')+'" placeholder="harga"></label>'
+       +'<button class="btn" data-act="sltp" data-id="'+p.id+'">Simpan</button><button class="btn danger" data-act="close" data-id="'+p.id+'">Tutup</button></div></div>';
+    });
+    h+='<button class="btn danger wide" data-act="closeall">Tutup semua posisi</button>';
+  }
+  el.innerHTML=h;liveTrade();
+}
+function liveTrade(){
+  if(cur!=='trade')return;
+  let fl=0,mar=0;
+  S.positions.forEach(p=>{const f=floating(p);fl+=f;mar+=p.margin;
+    const a=$('pl-'+p.id),b=$('cp-'+p.id);
+    if(a){a.textContent=plS(f);a.className='big '+(f>=0?'up':'dn')}
+    if(b){const mp=mprice(p.symbol||'XAUUSD'),sp=maxSpread(p.symbol||'XAUUSD');b.textContent=(p.type==='BUY'?mp:mp+sp).toFixed(2);}
+  });
+  const set=(id,t,c)=>{const e=$(id);if(e){e.textContent=t;if(c!==undefined)e.className=c}};
+  set('sumBal',usd(S.balance));set('sumMar',usd(mar));
+  set('sumFl',plS(fl),fl>=0?'up':'dn');set('sumEq',usd(S.balance+mar+fl));
+}
+function renderHist(){
+  const el=$('s-hist');
+  const tot=S.history.reduce((a,b)=>a+b.pl,0);
+  let h='<div class="hint">Riwayat transaksi virtual</div>';
+  h+='<div class="kv"><span>Total laba/rugi virtual</span><b class="'+(tot>=0?'up':'dn')+'">'+plS(tot)+'</b></div>';
+  h+='<div class="kv"><span>Jumlah transaksi</span><b>'+S.history.length+'</b></div>';
+  if(!S.history.length)h+='<div class="empty">Belum ada transaksi yang ditutup.</div>';
+  S.history.forEach(t=>{
+    h+='<div class="row"><div class="line"><span class="big">'+(t.symbol||'XAUUSD')+'<span class="badge '+t.type+'">'+t.type+'</span>'+lotS(t.lotC)+'</span><b class="big '+(t.pl>=0?'up':'dn')+'">'+plS(t.pl)+'</b></div>'
+     +'<div class="line mut"><span>Masuk '+t.entry.toFixed(2)+'   Keluar '+t.exit.toFixed(2)+'</span><span>'+t.reason+'</span></div>'
+     +'<div class="line mut"><span>'+tstr(t.openedAt)+' → '+tstr(t.closedAt)+'</span></div></div>';
+  });
+  el.innerHTML=h;
+}
+function renderMsg(){
+  const el=$('s-msg');
+  let h='';
+  S.messages.forEach(m=>{h+='<div class="row msg"><h3>'+(m.read?'':'<i class="nd"></i>')+m.title+'</h3><p>'+m.body+'</p><time>'+tstr(m.ts)+'</time></div>'});
+  el.innerHTML=h||'<div class="empty">No messages yet.</div>';
+}
+function refreshAll(){
+  updateBal();updatePrices();updateBadge();dirty=true;
+  if(cur==='trade')renderTrade();
+  if(cur==='hist')renderHist();
+}
+
+/* ---------- navigation ---------- */
+let cur='chart';
+const TITLES={quote:'Quote',trade:'Trade',hist:'Riwayat',msg:'Messages'};
+function go(name){
+  cur=name;
+  ['quote','chart','trade','hist','msg'].forEach(n=>{$('s-'+n).hidden=n!==name});
+  document.querySelectorAll('.nb').forEach(b=>{if(b.dataset.go===name)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+  $('tools').hidden=name!=='chart';
+  $('title').hidden=name==='chart';$('title').textContent=TITLES[name]||'';
+  if(name==='chart'){resize();dirty=true}
+  if(name==='trade')renderTrade();
+  if(name==='hist')renderHist();
+  if(name==='quote'){renderQuote();updatePrices();}
+  if(name==='msg'){renderMsg();S.messages.forEach(m=>m.read=true);updateBadge();save()}
+}
+document.querySelectorAll('.nb').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+$('marketSelect').addEventListener('change',e=>switchMarket(e.target.value));
+
+/* trade screen actions */
+$('s-trade').addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const act=b.dataset.act,id=+b.dataset.id;
+  if(act==='gochart')go('chart');
+  else if(act==='close'){const pl=closePos(id,'Manual');save();vib(10);toast('Posisi ditutup: '+plS(pl));refreshAll()}
+  else if(act==='closeall'){let t=0;S.positions.slice().forEach(p=>{t+=closePos(p.id,'Manual')});save();vib(10);toast('Semua posisi ditutup: '+plS(t));refreshAll()}
+  else if(act==='sltp'){
+    const p=S.positions.find(x=>x.id===id);if(!p)return;
+    const row=b.closest('.row');
+    const rd=f=>{const v=row.querySelector('[data-f="'+f+'"]').value.trim().replace(',','.');if(v==='')return null;const n=parseFloat(v);return isFinite(n)&&n>0?r2(n):NaN};
+    const sl=rd('sl'),tp=rd('tp');
+    if(Number.isNaN(sl)||Number.isNaN(tp)){toast('Isi SL/TP dengan angka harga yang valid.');return}
+    const ref=mprice(p.symbol||'XAUUSD')+(p.type==='BUY'?0:maxSpread(p.symbol||'XAUUSD'));
+    if(p.type==='BUY'){
+      if(sl!=null&&sl>=ref){toast('SL untuk BUY harus di bawah harga sekarang ('+ref.toFixed(2)+').');return}
+      if(tp!=null&&tp<=ref){toast('TP untuk BUY harus di atas harga sekarang ('+ref.toFixed(2)+').');return}
+    }else{
+      if(sl!=null&&sl<=ref){toast('SL untuk SELL harus di atas harga sekarang ('+ref.toFixed(2)+').');return}
+      if(tp!=null&&tp>=ref){toast('TP untuk SELL harus di bawah harga sekarang ('+ref.toFixed(2)+').');return}
+    }
+    p.sl=sl;p.tp=tp;save();dirty=true;toast('SL/TP disimpan.');
+  }
+});
+
+/* ---------- buy/sell + lot ---------- */
+$('btnSell').addEventListener('click',()=>openPos('SELL'));
+$('btnBuy').addEventListener('click',()=>openPos('BUY'));
+function setLot(d){S.lotC=Math.max(10,Math.min(1000,S.lotC+d));$('lotVal').textContent=lotS(S.lotC);save()}
+function openLotMenu(){
+  const old=document.querySelector('.lot-menu');if(old){old.remove();return}
+  const menu=document.createElement('div');menu.className='lot-menu';
+  [[-5,'-5'],[-1,'-1'],[1,'+1'],[5,'+5']].forEach(([d,label])=>{const b=document.createElement('button');b.textContent=label;b.type='button';b.addEventListener('click',()=>{setLot(d);menu.remove()});menu.appendChild(b)});
+  document.querySelector('.lot').style.position='relative';document.querySelector('.lot').appendChild(menu);
+}
+$('lotVal').addEventListener('click',e=>{e.stopPropagation();openLotMenu()});
+document.addEventListener('click',e=>{if(!e.target.closest('.lot'))document.querySelector('.lot-menu')?.remove()});
+function holdRepeat(btn,fn){
+  let t1,t2;const stop=()=>{clearTimeout(t1);clearInterval(t2)};
+  btn.addEventListener('pointerdown',e=>{e.preventDefault();fn();t1=setTimeout(()=>{t2=setInterval(fn,90)},380)});
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,()=>{stop();save()}));
+  btn.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn()}});
+}
+holdRepeat($('lotDn'),()=>setLot(-1));holdRepeat($('lotUp'),()=>setLot(1));
+S.lotC=Math.max(10,Math.min(1000,Number.isInteger(S.lotC)?S.lotC:10));$('lotVal').textContent=lotS(S.lotC);
+
+/* ---------- toast / vibrate / sheet ---------- */
+let tt;function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2600)}
+function vib(n){try{navigator.vibrate&&navigator.vibrate(n)}catch(e){}}
+let rsTimer;
+function closeSheet(){$('sheet').hidden=true;const b=$('btnReset');b.textContent='Reset saldo virtual';delete b.dataset.arm;clearTimeout(rsTimer)}
+$('btnMenu').addEventListener('click',()=>{$('sheet').hidden=false;$('btnCloseSheet').focus()});
+$('btnCloseSheet').addEventListener('click',closeSheet);
+$('sheet').addEventListener('click',e=>{if(e.target===$('sheet'))closeSheet()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('sheet').hidden)closeSheet()});
+function usdFmt(n){return '$'+Math.abs(n).toFixed(2)}
+function idrFmt(n){return 'Rp'+fmtInt(n)}
+function refreshExchange(){ $('exUsd').textContent=usdFmt(S.balance); $('exIdr').textContent=idrFmt(S.idrBalance); }
+function openExchange(){ closeSheet(); refreshExchange(); $('exchangeAmount').value=''; $('exchangeModal').hidden=false; $('exchangeAmount').focus(); }
+function closeExchange(){ $('exchangeModal').hidden=true; }
+$('btnExchange').addEventListener('click',openExchange);
+$('exchangeCancel').addEventListener('click',closeExchange);
+$('exchangeModal').addEventListener('click',e=>{if(e.target===$('exchangeModal'))closeExchange()});
+$('exchangeConfirm').addEventListener('click',()=>{
+  const dir=$('exchangeDir').value;
+  const raw=parseFloat(String($('exchangeAmount').value).replace(',','.'));
+  if(!isFinite(raw)||raw<=0){toast('Masukkan jumlah yang valid.');return}
+  if(dir==='usd-idr'){
+    const amt=Math.round(raw*100)/100;
+    if(amt>S.balance){toast('Saldo USD virtual tidak cukup.');return}
+    const out=Math.round(amt*IDR_RATE);
+    if(!confirm('Konfirmasi tukar '+usdFmt(amt)+' menjadi '+idrFmt(out)+'?'))return;
+    S.balance=Math.round((S.balance-amt)*100)/100; S.idrBalance+=out;
+    save(); refreshExchange(); refreshAll(); toast('Berhasil: '+usdFmt(amt)+' → '+idrFmt(out));
+  }else{
+    const amt=Math.round(raw);
+    if(amt>S.idrBalance){toast('Saldo Rp virtual tidak cukup.');return}
+    const out=Math.round((amt/IDR_RATE)*100)/100;
+    if(!confirm('Konfirmasi tukar '+idrFmt(amt)+' menjadi '+usdFmt(out)+'?'))return;
+    S.idrBalance-=amt; S.balance=Math.round((S.balance+out)*100)/100;
+    save(); refreshExchange(); refreshAll(); toast('Berhasil: '+idrFmt(amt)+' → '+usdFmt(out));
+  }
+});
+
+$('btnReset').addEventListener('click',()=>{
+  const b=$('btnReset');
+  if(!b.dataset.arm){b.dataset.arm='1';b.textContent='Tekan lagi untuk konfirmasi';rsTimer=setTimeout(()=>{delete b.dataset.arm;b.textContent='Reset saldo virtual'},3500);return}
+  S.balance=START_BAL;S.idrBalance=0;S.positions=[];S.history=[];S.messages=[];S.globalChat=[];S.lotC=10;MARKETS.forEach(m=>S.marketPrices[m.symbol]=m.start);SYMBOL='XAUUSD';price=S.marketPrices.XAUUSD;anchor=price;$('lotVal').textContent='0.10';updateMarketHeader();renderQuote();
+  welcome();save();closeSheet();refreshAll();toast('Virtual balance restored to $100.00.');
+});
+
+/* ---------- indikator SELL / BUY (kedua tombol berganti bersama) ---------- */
+const tradebar=document.querySelector('.tradebar');
+const calm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+let sideBlue=false;
+setInterval(()=>{
+  sideBlue=!sideBlue;
+  tradebar.classList.toggle('alt',sideBlue);
+},calm?1400:650);
+
+/* ---------- chart ---------- */
+const cv=$('cv'),ctx=cv.getContext('2d');
+let W=0,H=0,dirty=true,panPx=0,yMin=null,yMax=null,crossOn=false,cross=null,pressing=false,drag=null;
+const FONT='13px Roboto,"Segoe UI",system-ui,sans-serif';
+function resize(){
+  const r=$('chartwrap').getBoundingClientRect();if(r.width<2||r.height<2)return;
+  const dpr=Math.min(window.devicePixelRatio||1,2.5);
+  W=r.width;H=r.height;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);dirty=true;
+}
+if(window.ResizeObserver)new ResizeObserver(resize).observe($('chartwrap'));
+window.addEventListener('resize',resize);
+function niceStep(raw){const p=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/p;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p}
+
+let vZoom=0.18; // 0 = candle lebih tinggi, 1 = lebih gepeng
+function draw(){
+  if(!W)return;
+  const AX=70,TH=30,MG=9,pw=W-AX,ph=H-TH;
+  const s=Math.max(5.5,Math.min(9,pw/62));
+  const n=candles.length,A=pw-MG*s+panPx-s/2;
+  const xOf=i=>A-(n-1-i)*s;
+  const iMin=Math.max(0,Math.floor(n-1-A/s)-1),iMax=Math.min(n-1,Math.ceil(n-1-(A-pw)/s)+1);
+  let lo=Infinity,hi=-Infinity;
+  for(let i=iMin;i<=iMax;i++){const c=candles[i];if(c.l<lo)lo=c.l;if(c.h>hi)hi=c.h}
+  if(panPx<s*3){lo=Math.min(lo,price);hi=Math.max(hi,price)}
+  if(!isFinite(lo)){lo=price-5;hi=price+5}
+  const span=Math.max(hi-lo,8)*(1+vZoom*1.35),mid=(hi+lo)/2;lo=mid-span*0.6;hi=mid+span*0.6;
+  if(yMin===null){yMin=lo;yMax=hi}else{yMin+=(lo-yMin)*0.22;yMax+=(hi-yMax)*0.22;if(Math.abs(lo-yMin)>0.02||Math.abs(hi-yMax)>0.02)dirty=true}
+  const yOf=p=>(yMax-p)/(yMax-yMin)*ph;
+  const pOf=y=>yMax-y/ph*(yMax-yMin);
+
+  ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+  ctx.font=FONT;ctx.textBaseline='alphabetic';
+
+  // grid
+  ctx.save();ctx.beginPath();ctx.rect(0,0,pw,ph);ctx.clip();
+  ctx.strokeStyle='#2a2d31';ctx.lineWidth=1;ctx.setLineDash([3,4]);
+  const st=niceStep((yMax-yMin)/(ph/50));
+  const ticks=[];
+  for(let v=Math.ceil(yMin/st)*st;v<=yMax;v+=st){ticks.push(v);const y=Math.round(yOf(v))+.5;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(pw,y);ctx.stroke()}
+  const mins=[5,10,15,30,60,120,240,480,720,1440];let k=1440;for(const m of mins){if(m*s>=130){k=m;break}}
+  const tlabels=[];
+  for(let i=iMin;i<=iMax;i++){const t=candles[i].t;if((t/60000)%k===0){const x=Math.round(xOf(i))+.5;tlabels.push([x,t]);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,ph);ctx.stroke()}}
+  ctx.setLineDash([]);
+
+  // candles
+  let bw=Math.max(1,Math.floor(s*0.7));bw|=1;
+  for(let i=iMin;i<=iMax;i++){
+    const c=candles[i],up=c.c>=c.o,xc=Math.round(xOf(i));
+    ctx.fillStyle=up?'#26b5a0':'#f0523f';
+    const yh=yOf(c.h),yl=yOf(c.l);
+    ctx.fillRect(xc,Math.round(yh),1,Math.max(1,Math.round(yl-yh)));
+    const yt=yOf(Math.max(c.o,c.c)),yb=yOf(Math.min(c.o,c.c));
+    ctx.fillRect(xc-(bw-1)/2,Math.round(yt),bw,Math.max(1,Math.round(yb-yt)));
+  }
+
+  // garis harga sekarang
+  const yc=yOf(price);
+  ctx.strokeStyle='rgba(31,176,184,.85)';ctx.beginPath();ctx.moveTo(0,Math.round(yc)+.5);ctx.lineTo(pw,Math.round(yc)+.5);ctx.stroke();
+
+  // garis posisi, SL, TP
+  const tags=[];
+  ctx.font='14px Roboto,"Segoe UI",system-ui,sans-serif';
+  S.positions.forEach(p=>{
+    const col=p.type==='BUY'?'#3d8bff':'#f0523f',y=Math.round(yOf(p.entry))+.5,f=floating(p);
+    ctx.strokeStyle=col;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(pw,y);ctx.stroke();ctx.setLineDash([]);
+    const a=p.type+' '+lotS(p.lotC)+', ';
+    ctx.fillStyle=col;ctx.fillText(a,6,y-6);
+    ctx.fillStyle=f>=0?'#4da3ff':'#f0523f';ctx.fillText(plS(f),6+ctx.measureText(a).width,y-6);
+    tags.push({y,txt:p.entry.toFixed(2),border:col,fg:col});
+    [['sl','SL','#c9ced6'],['tp','TP','#6fd3a0']].forEach(q=>{
+      if(p[q[0]]==null)return;const yy=Math.round(yOf(p[q[0]]))+.5;
+      ctx.strokeStyle=q[2];ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(0,yy);ctx.lineTo(pw,yy);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle=q[2];ctx.fillText(q[1],6,yy-6);
+      tags.push({y:yy,txt:p[q[0]].toFixed(2),border:q[2],fg:q[2]});
+    });
+  });
+  ctx.restore();
+
+  // sumbu
+  ctx.fillStyle='#000';ctx.fillRect(pw,0,AX,H);ctx.fillRect(0,ph,pw,TH);
+  ctx.strokeStyle='#33363b';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pw+.5,0);ctx.lineTo(pw+.5,ph);ctx.moveTo(0,ph+.5);ctx.lineTo(pw,ph+.5);ctx.stroke();
+  ctx.font=FONT;
+  const near=y=>Math.abs(y-yc)<20||tags.some(t=>Math.abs(t.y-y)<16);
+  ctx.fillStyle='#d0d3d8';
+  ticks.forEach(v=>{const y=yOf(v);if(y>8&&y<ph-4&&!near(y))ctx.fillText(v.toFixed(2),pw+7,y+4.5)});
+  tlabels.forEach(l=>{const tx=tstr(l[1]),w=ctx.measureText(tx).width;const x=Math.max(w/2+2,Math.min(pw-w/2,l[0]));ctx.fillText(tx,x-w/2,ph+20)});
+  tags.forEach(t=>{if(t.y<9||t.y>ph-9)return;ctx.fillStyle='#000';ctx.fillRect(pw+1,t.y-9,AX-1,18);ctx.strokeStyle=t.border;ctx.lineWidth=1.5;ctx.strokeRect(pw+2,t.y-8.5,AX-3,17);ctx.fillStyle=t.fg;ctx.fillText(t.txt,pw+7,t.y+4.5)});
+  // tag harga sekarang + hitung mundur candle
+  const ty=Math.max(17,Math.min(ph-17,yc));
+  ctx.fillStyle='#1a9fa7';ctx.fillRect(pw+1,ty-17,AX-1,34);
+  const left=60-Math.floor((Date.now()%60000)/1000);
+  ctx.fillStyle='#fff';ctx.fillText(price.toFixed(2),pw+7,ty-2);ctx.fillText('00:'+pad(left===60?59:left),pw+7,ty+13);
+
+  // crosshair
+  if(crossOn&&cross){
+    const cx=Math.max(0,Math.min(pw,cross.x)),cy=Math.max(0,Math.min(ph,cross.y));
+    ctx.strokeStyle='#8a8f96';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(cx+.5,0);ctx.lineTo(cx+.5,ph);ctx.moveTo(0,cy+.5);ctx.lineTo(pw,cy+.5);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#2b2f36';ctx.fillRect(pw+1,cy-9,AX-1,18);ctx.fillStyle='#fff';ctx.fillText(pOf(cy).toFixed(2),pw+7,cy+4.5);
+    let ci=Math.round(n-1-(A-cx)/s);ci=Math.max(0,Math.min(n-1,ci));
+    const tx=tstr(candles[ci].t),w=ctx.measureText(tx).width+12;
+    const bx=Math.max(0,Math.min(pw-w,cx-w/2));
+    ctx.fillStyle='#2b2f36';ctx.fillRect(bx,ph+3,w,22);ctx.fillStyle='#fff';ctx.fillText(tx,bx+6,ph+19);
+  }
+  $('btnLive').hidden=panPx<30;
+}
+function loop(){if(dirty&&cur==='chart'){dirty=false;draw()}requestAnimationFrame(loop)}
+
+/* vertical chart zoom: drag the price-axis area directly */
+(function(){
+  const z=$('vzoom'); if(!z)return;
+  let dragging=false,startY=0,startZoom=0;
+  z.addEventListener('pointerdown',e=>{
+    dragging=true; startY=e.clientY; startZoom=vZoom;
+    try{z.setPointerCapture(e.pointerId)}catch(_){}
+    e.preventDefault();
+  });
+  z.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    // Drag upward = zoom in, downward = zoom out. Keep a moderate range.
+    const dy=e.clientY-startY;
+    vZoom=Math.max(0,Math.min(1,startZoom+dy/260));
+    dirty=true;
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(ev=>z.addEventListener(ev,()=>{dragging=false}));
+})();
+
+/* interaksi chart */
+const maxPan=()=>Math.max(0,(candles.length-1)*6-(W-70)*0.4);
+cv.addEventListener('pointerdown',e=>{
+  try{cv.setPointerCapture(e.pointerId)}catch(_){}
+  pressing=true;const r=cv.getBoundingClientRect();
+  if(crossOn)cross={x:e.clientX-r.left,y:e.clientY-r.top};else drag={x:e.clientX,pan:panPx};
+  dirty=true;
+});
+cv.addEventListener('pointermove',e=>{
+  const r=cv.getBoundingClientRect();
+  if(crossOn){if(pressing||e.pointerType==='mouse'){cross={x:e.clientX-r.left,y:e.clientY-r.top};dirty=true}}
+  else if(drag){panPx=Math.max(0,Math.min(maxPan(),drag.pan+(e.clientX-drag.x)));dirty=true}
+});
+['pointerup','pointercancel'].forEach(ev=>cv.addEventListener(ev,()=>{pressing=false;drag=null}));
+cv.addEventListener('wheel',e=>{e.preventDefault();panPx=Math.max(0,Math.min(maxPan(),panPx-(Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY)));dirty=true},{passive:false});
+$('btnLive').addEventListener('click',()=>{panPx=0;dirty=true});
+$('btnCross').addEventListener('click',()=>{crossOn=!crossOn;$('btnCross').setAttribute('aria-pressed',crossOn);if(!crossOn)cross=null;dirty=true});
+
+
+/* ---------- developer access: 5 taps in 1 second ---------- */
+(function(){
+  const DEV_KEY='TV-DEV-7K29-2026-X91G';
+  const ADMIN_PASSWORD='TV-ADMIN-4P8X-26';
+  const DEV_AUTH_KEY='tradeverse_dev_authorized_v1';
+  const hot=$('devHotspot');
+  const login=$('devLogin');
+  const dev=$('devEvent');
+  let taps=0,firstTap=0,step=0;
+  function openAdmin(){
+    if(localStorage.getItem(DEV_AUTH_KEY)==='1'){dev.hidden=false;return}
+    step=0;$('devPass').value='';$('devLoginTitle').textContent='Admin Event — Password';$('devLoginSubmit').textContent='Lanjut';login.hidden=false;$('devPass').focus();
+  }
+  function doLogin(){
+    const value=$('devPass').value;
+    if(step===0){
+      if(value===ADMIN_PASSWORD){step=1;$('devPass').value='';$('devLoginTitle').textContent='Admin Event — Kode Rahasia';$('devPass').placeholder='Masukkan kode rahasia';toast('Password Admin benar. Masukkan kode rahasia.');$('devPass').focus()}
+      else toast('Password Admin salah.');
+      return;
+    }
+    if(value===DEV_KEY){localStorage.setItem(DEV_AUTH_KEY,'1');login.hidden=true;dev.hidden=false;$('devPass').value='';toast('Admin Event terbuka.')}
+    else toast('Kode rahasia salah.');
+  }
+  if(hot){hot.addEventListener('click',()=>{const now=Date.now();if(!firstTap||now-firstTap>1000){firstTap=now;taps=1}else taps++;if(taps>=5){taps=0;firstTap=0;openAdmin()}})}
+  $('devLoginCancel').addEventListener('click',()=>{login.hidden=true;step=0;$('devPass').value=''});
+  $('devLoginSubmit').addEventListener('click',doLogin);
+  $('devPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+  $('devCancel').addEventListener('click',()=>{dev.hidden=true});
+  $('devSend').addEventListener('click',()=>{
+    const text=$('devMessage').value.trim();
+    if(!text){toast('Tulis pesan dulu.');return}
+    showGlobalChat(text);
+    $('devMessage').value='';
+    toast('Global message sent.');
+  });
+  $('devPollStart').addEventListener('click',startGlobalPoll);
+  $('devStart').addEventListener('click',()=>{
+    const name=$('devName').value.trim()||'GLOBAL MARKET EVENT';
+    const seconds=Math.max(1,Math.min(3600,Number($('devSeconds').value)||60));
+    const move=Math.max(1,Math.min(1000,Number($('devMove').value)||100));
+    const dir=$('devDirection').value;
+    dev.hidden=true;
+    const expire=getAdminExpire();
+    addMsg(name,'Event scheduled globally for all markets. Direction: '+dir.toUpperCase()+', movement: '+move+', countdown: '+seconds+' seconds.',expire);
+    toast(name+' started. Countdown: '+seconds+'s');
+    let left=seconds;
+    const id=setInterval(()=>{
+      left--;
+      if(left<=0){clearInterval(id);const chosen=dir==='random'?(Math.random()<.5?'up':'down'):dir;const delta=(chosen==='up'?1:-1)*move;MARKETS.forEach(m=>{S.marketPrices[m.symbol]=mround(m.symbol,mprice(m.symbol)+delta)});price=S.marketPrices[SYMBOL];anchor=price;live.c=price;live.h=Math.max(live.h,price);live.l=Math.min(live.l,price);dirty=true;updatePrices();liveTrade();checkTriggers();save();addMsg(name+' completed','All markets received a '+(delta>0?'+':'')+delta+' virtual price movement.',expire);toast(name+' completed: '+(delta>0?'+':'')+delta);return}
+      if(left%5===0||left<=3)toast(name+' — '+left+'s remaining');
+    },1000);
+  });
+})();
+
+
+// Global Vote prototype: UI-only now; backend will broadcast votes to all online players.
+function renderGlobalPoll(){
+  const el=$('globalChat'); const p=S.globalPoll;
+  if(!p){return}
+  const left=Math.max(0,Math.ceil((p.expiresAt-Date.now())/1000));
+  if(left<=0){
+    S.globalPoll=null;
+    el.innerHTML='';
+    el.hidden=true;
+    clearTimeout(window.__pollTimer);
+    save();
+    return;
+  }
+  const total=p.votesA+p.votesB, a=total?Math.round(p.votesA/total*100):0, b=total?100-a:0;
+  el.innerHTML=`<div class="pollbox"><div class="pollq">${esc(p.question)}</div>
+    <div class="pollopt"><button class="pollbtn" data-vote="a"><span class="pollbar" style="width:${a}%"></span><span class="polltxt"><span>${esc(p.a)}</span><span>${a}%</span></span></button></div>
+    <div class="pollopt"><button class="pollbtn b" data-vote="b"><span class="pollbar" style="width:${b}%"></span><span class="polltxt"><span>${esc(p.b)}</span><span>${b}%</span></span></button></div>
+    <div class="pollmeta">${total} vote${total===1?'':'s'} · ${left>0?left+'s tersisa':'Voting selesai'}</div>
+    ${left<=0?`<div class="pollwinner">Hasil terbanyak: ${esc(p.votesA===p.votesB?'Seri':(p.votesA>p.votesB?p.a:p.b))}</div>`:''}</div>`;
+  el.querySelectorAll('[data-vote]').forEach(btn=>btn.onclick=()=>voteGlobal(btn.dataset.vote));
+  clearTimeout(window.__pollTimer);
+  window.__pollTimer=setTimeout(renderGlobalPoll,1000);
+}
+function voteGlobal(which){
+  const p=S.globalPoll;if(!p||p.expiresAt<=Date.now())return renderGlobalPoll();
+  if(p.myVote)return toast('Kamu sudah vote.');
+  p.myVote=which; if(which==='a')p.votesA++;else p.votesB++;
+  renderGlobalPoll(); save();
+}
+function startGlobalPoll(){
+  const q=$('devPollQuestion').value.trim()||'Kalian pilih apa?';
+  const a=$('devPollA').value.trim()||'Pilihan A'; const b=$('devPollB').value.trim()||'Pilihan B';
+  const duration=Math.max(1,Math.min(31536000,Number($('devPollDuration').value)||30));
+  S.globalPoll={question:q,a,b,votesA:0,votesB:0,myVote:null,expiresAt:Date.now()+duration*1000};
+  addMsg('Developer Global Vote',q+' — '+a+' atau '+b+' ('+duration+' detik).');
+  renderGlobalPoll(); toast('Global Vote dimulai: '+duration+'s');
+}
+
+/* ---------- main loop ---------- */
+function tick(){
+  MARKETS.forEach(m=>{if(m.symbol!==SYMBOL)marketMove(m.symbol)});
+  step();
+  S.marketPrices[SYMBOL]=price;
+  const m=Math.floor(Date.now()/60000)*60000;
+  if(m>live.t)roll(m);
+  live.c=price;if(price>live.h)live.h=price;if(price<live.l)live.l=price;
+  if(price>sessHi)sessHi=price;if(price<sessLo)sessLo=price;
+  updatePrices();liveTrade();checkTriggers();dirty=true;
+  setTimeout(tick,170+Math.random()*200);
+}
+setInterval(()=>{dirty=true;if(cur==='quote')renderQuote()},1000);       // hitung mundur candle
+setInterval(save,5000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
+window.addEventListener('pagehide',save);
+
+if(!S.messages.length)welcome();
+const ms=$('marketSelect');MARKETS.forEach(m=>{const o=document.createElement('option');o.value=m.symbol;o.textContent=m.symbol;ms.appendChild(o)});ms.value=SYMBOL;updateMarketHeader();renderQuote();
+updateBal();updateBadge();updatePrices();go('chart');
+requestAnimationFrame(loop);
+tick();
+})();
+</script>
+</body>
+</html>
