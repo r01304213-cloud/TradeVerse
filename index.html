@@ -376,6 +376,16 @@ function initGlobalRealtime(){
     )
     .subscribe();
 }
+  async function initSupabasePlayer(){
+  const {data,error}=await supabase.auth.signInAnonymously();
+
+  if(error){
+    console.error('Supabase auth error:',error);
+    return;
+  }
+
+  initGlobalRealtime();
+  }
 async function showGlobalChat(text){
   const msg=String(text||'').trim();
   if(!msg)return;
@@ -958,7 +968,6 @@ const ms=$('marketSelect');MARKETS.forEach(m=>{const o=document.createElement('o
 updateBal();updateBadge();updatePrices();go('chart');
 requestAnimationFrame(loop);
 tick();
-  initGlobalRealtime();
   initSupabasePlayer();
 })();
 </script>
