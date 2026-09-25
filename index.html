@@ -379,7 +379,7 @@ function initGlobalRealtime(){
   async function initSupabasePlayer(){
   const {data,error}=await supabase.auth.signInAnonymously();
 
-  if(error){
+if(error){
   alert('Supabase Error: '+error.message);
   console.error('Supabase auth error:',error);
   return;
