@@ -292,6 +292,9 @@ main{flex:1;min-height:0;display:flex;flex-direction:column}
 <script>
 (function(){
 'use strict';
+  const SUPABASE_URL = 'https://yerwcsmexnyhexfrowns.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_4kPFg9oigLfKgXgdcRmPRQ_o3W9p1x2';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const START_BAL=100, PTV=0.5, MPL=1, IDR_RATE=17000, KEY='tradeverse_v3_usd';
 const MARKETS=[
   {symbol:'XAUUSD',name:'Gold vs US Dollar',start:4017.18,spread:0.13},
