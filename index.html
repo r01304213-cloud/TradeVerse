@@ -364,8 +364,8 @@ function initGlobalRealtime(){
         if(!row||row.type!=='chat'||!row.message)return;
 
         const el=$('globalChat');
-        el.innerHTML='<div class="gchat"><div class="gwho">Developer <span class="verified-badge" aria-label="Verified Developer"></span></div><div class="gmsg"></div></div>';
-        el.querySelector('.gmsg').textContent=row.message;
+if(!el)return;
+el.innerHTML='<div class="gchat"><div class="gwho">Developer <span class="verified-badge" aria-label="Verified Developer"></span></div><div class="gmsg"></div></div>';
 
         const ttl=Math.max(
           1,
