@@ -380,9 +380,10 @@ function initGlobalRealtime(){
   const {data,error}=await supabase.auth.signInAnonymously();
 
   if(error){
-    console.error('Supabase auth error:',error);
-    return;
-  }
+  alert('Supabase Error: '+error.message);
+  console.error('Supabase auth error:',error);
+  return;
+}
 
   initGlobalRealtime();
   }
