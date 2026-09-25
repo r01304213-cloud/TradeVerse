@@ -976,6 +976,25 @@ updateBal();updateBadge();updatePrices();go('chart');
   alert('JS BERHASIL JALAN');
 requestAnimationFrame(loop);
 tick();
+  async function initSupabasePlayer(){
+  try{
+    const {data,error}=await supabase.auth.signInAnonymously();
+
+    if(error){
+      alert('Supabase Error: '+error.message);
+      console.error('Supabase auth error:',error);
+      return;
+    }
+
+    alert('Supabase OK! User ID: '+data.user.id);
+
+    initGlobalRealtime();
+
+  }catch(e){
+    alert('Supabase Crash: '+e.message);
+    console.error('Supabase crash:',e);
+  }
+}
   initSupabasePlayer();
 })();
 </script>
