@@ -967,6 +967,7 @@ window.addEventListener('pagehide',save);
 if(!S.messages.length)welcome();
 const ms=$('marketSelect');MARKETS.forEach(m=>{const o=document.createElement('option');o.value=m.symbol;o.textContent=m.symbol;ms.appendChild(o)});ms.value=SYMBOL;updateMarketHeader();renderQuote();
 updateBal();updateBadge();updatePrices();go('chart');
+  alert('JS BERHASIL JALAN');
 requestAnimationFrame(loop);
 tick();
   initSupabasePlayer();
